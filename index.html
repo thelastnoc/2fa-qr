@@ -10,11 +10,11 @@
 
   <link rel="icon">
   <link rel="license" href="https://www.gnu.org/licenses/gpl-3.0.html" title="GNU GPL 3.0 or later">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:500,400">
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-  <script src="https://cdn.rawgit.com/lrsjng/jquery-qrcode/v0.14.0/dist/jquery-qrcode.min.js" integrity="sha384-BrZGf2D/R3HVPz9JtfTVrbaUyVVaFKZWO2MTcoL80nBcGZBsRhbjCSsFXUGAEO45" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://cdn.rawgit.com/lrsjng/jquery-qrcode/v0.17.0/dist/jquery-qrcode.min.js" integrity="sha384-J7DIscqSIBfb9e7vk6Z6HUs+iizZghD0pZKKjwu6eoh1GR9dLMlMXNJLfGUNpN/z" crossorigin="anonymous"></script>
 <style>
 body {
   padding: 0 15px;
@@ -95,11 +95,11 @@ h2 {
     <p><input class="form-control" type="search" id="counter" placeholder="Initial counter &mdash; Defaults to 0" pattern="\d+" spellcheck="false"></p>
 
     <div class="custom-control custom-checkbox">
-      <p><input class="custom-control-input" type="checkbox" id="adv_options"><label class="custom-control-label" for="adv_options">Show advanced settings</label></p>
+      <p><input class="custom-control-input" type="checkbox" id="advanced_options"><label class="custom-control-label" for="advanced_options">Show advanced settings</label></p>
     </div>
 
-    <div id="adv_options_container">
-      <p>Please note that advanced settings are not supported by the Google Authenticator app yet: all advanced settings are ignored, and default values are used. <a href="https://www.yubico.com/products/services-software/download/yubico-authenticator/">Yubico Authenticator</a> support these advanced settings.</p>
+    <div id="advanced_options_container">
+      <p>Please note that advanced settings are not supported by the Google Authenticator app (all advanced settings are ignored). <a href="https://www.yubico.com/products/services-software/download/yubico-authenticator/">Yubico Authenticator</a> supports these advanced settings.</p>
       <p>
         <select class="form-control" id="algorithm">
           <option value="SHA1">SHA1 algorithm (Default)</option>
@@ -120,6 +120,7 @@ h2 {
     <p><input class="form-control" type="text" id="uri" placeholder="otpauth://" spellcheck="false"></p>
 
     <datalist id="issuers">
+      <option>Amazon</option>
       <option>Apple</option>
       <option>AWS</option>
       <option>Blizzard</option>
@@ -133,6 +134,7 @@ h2 {
       <option>Evernote</option>
       <option>Facebook</option>
       <option>Fastly</option>
+      <option>Firefox</option>
       <option>GitHub</option>
       <option>GitLab</option>
       <option>GoDaddy</option>
@@ -145,7 +147,9 @@ h2 {
       <option>MaxCDN</option>
       <option>Microsoft</option>
       <option>Namecheap</option>
+      <option>Newegg</option>
       <option>Okta</option>
+      <option>Private Internet Access</option>
       <option>ProtonMail</option>
       <option>Reddit</option>
       <option>Salesforce</option>
@@ -160,6 +164,8 @@ h2 {
       <option>Yahoo!</option>
     </datalist>
 
+    <input class="form-control" type="range" id="size" value="200" min="50" max="650" title="QR Code Size">
+
     <div id="qr"></div>
 
 <script>
@@ -170,46 +176,46 @@ $("#qr").empty().qrcode({
 });
 $("link[rel=icon]").prop("href", $("#qr img").prop("src"));
 
-function adv_options_changed() {
-  $("#adv_options_container").toggle($("#adv_options").prop("checked"));
+function advanced_options_changed() {
+  $("#advanced_options_container").toggle($("#advanced_options").prop("checked"));
   $("#period").toggle($("#type").val() == "totp");
 }
-$("#adv_options").on("change keyup", adv_options_changed);
+$("#advanced_options").on("change keyup", advanced_options_changed);
 
 function type_changed() {
-  var type = $("#type").val();
+  const type = $("#type").val();
   if (type == "totp") {
     $("#counter").hide();
   }
   else {
     $("#counter").show();
   }
-  adv_options_changed();
+  advanced_options_changed();
 }
 type_changed();
 $("#type").on("change keyup", type_changed);
 
 function generate_uri() {
-  var type = $("#type").val();
-  var secret = $("#secret").val().replace(/ /g, '');
-  var label = $("#label").val();
-  var issuer = $("#issuer").val();
-  var adv_options = $("#adv_options").prop("checked");
+  const type = $("#type").val();
+  const secret = $("#secret").val().replace(/ /g, '');
+  const label = $("#label").val();
+  const issuer = $("#issuer").val();
+  const advanced_options = $("#advanced_options").prop("checked");
 
-  var uri = `otpauth://${type}/${encodeURIComponent(label)}?secret=${secret}`;
+  let uri = `otpauth://${type}/${encodeURIComponent(label)}?secret=${secret}`;
   if (issuer != "") {
     uri += `&issuer=${encodeURIComponent(issuer)}`;
   }
   if (type == "hotp") {
-    var counter = $("#counter").val() || "0";
+    const counter = $("#counter").val() || "0";
     uri += `&counter=${counter}`;
   }
-  if (adv_options) {
-    var algorithm = $("#algorithm").val();
-    var digits = $("#digits").val();
+  if (advanced_options) {
+    const algorithm = $("#algorithm").val();
+    const digits = $("#digits").val();
     uri += `&algorithm=${algorithm}&digits=${digits}`;
     if (type == "totp") {
-      var period = $("#period").val() || "30";
+      const period = $("#period").val() || "30";
       uri += `&period=${period}`;
     }
   }
@@ -217,23 +223,25 @@ function generate_uri() {
 }
 
 function update_val(el, text) {
-  var start = el.selectionStart;
-  var end = el.selectionEnd;
+  const start = el.selectionStart;
+  const end = el.selectionEnd;
   el.value = text;
   el.setSelectionRange(start, end);
 }
 
 function update_qr() {
-  var secret = $("#secret").val();
-  var issuer = $("#issuer").val();
-  var label = $("#label").val();
-  var uri = generate_uri();
+  const secret = $("#secret").val();
+  const issuer = $("#issuer").val();
+  const label = $("#label").val();
+  const size = $("#size").val();
+  const uri = generate_uri();
   if (uri != $("#uri").val()) {
     update_val($("#uri")[0], uri);
   }
 
   $("#qr").empty().qrcode({
-    text: uri
+    text: uri,
+    size: size,
   });
   if (label == "" && issuer == "") {
     $("#app_label").text("Issuer (label)");
@@ -250,7 +258,7 @@ function update_qr() {
 }
 
 update_qr();
-$("select,input[type='search'],input[type='checkbox']").on("change keyup input", update_qr);
+$("select,input[type='search'],input[type='checkbox'],input[type='range']").on("change keyup input", update_qr);
 
 function decode(s) {
   return s ? decodeURIComponent(s) : undefined;
@@ -258,7 +266,7 @@ function decode(s) {
 
 $("#uri").on("change keyup input", function() {
   // validate and parse uri
-  var r = /^otpauth:\/\/([th]otp)\/([^?]+)\?secret=([^&]+)(?:&issuer=([^&]+))?(?:&counter=(\d+))?(?:&algorithm=(SHA1|SHA256|SHA512))?(?:&digits=(6|8))?(?:&period=(\d+))?$/.exec(this.value);
+  const r = /^otpauth:\/\/([th]otp)\/([^?]+)\?secret=([^&]+)(?:&issuer=([^&]+))?(?:&counter=(\d+))?(?:&algorithm=(SHA1|SHA256|SHA512))?(?:&digits=(6|8))?(?:&period=(\d+))?$/.exec(this.value);
   if (r) {
     $("#uri").removeClass("is-invalid");
   }
@@ -267,10 +275,10 @@ $("#uri").on("change keyup input", function() {
     return;
   }
 
-  $("#adv_options").prop("checked", r[6] != undefined || r[7] != undefined || r[8] != undefined);
-  adv_options_changed();
+  $("#advanced_options").prop("checked", r[6] != undefined || r[7] != undefined || r[8] != undefined);
+  advanced_options_changed();
 
-  var uri = generate_uri();
+  const uri = generate_uri();
   if (uri == this.value) {
     // uri did not change
     return;
